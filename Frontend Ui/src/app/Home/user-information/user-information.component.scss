@@ -1,0 +1,14 @@
+.bold-label {
+    font-weight: bold; /* Makes text bold */
+}
+
+input::placeholder {
+    font-size: 0.9em; /* Adjust this value to make the placeholder smaller */
+}
+.form-control[type="text"],
+.form-control[type="email"],
+.form-control[type="tel"],
+.form-control[type="date"],
+.form-control[type="select"] {
+    height: calc(2em + 0.7rem + 1px); /* Adjust this value to increase the height */
+}
