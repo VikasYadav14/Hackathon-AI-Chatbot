@@ -1,4 +1,5 @@
 
+import { conversationState } from '@/commonstore';
 import { NextRequest, NextResponse } from 'next/server';
 
 interface Message {
@@ -6,13 +7,6 @@ interface Message {
     content: string;
 }
 
-interface ConversationState {
-    [userId: string]: {
-        history: Message[];
-    };
-}
-
-let conversationState: ConversationState = {};
 
 export async function GET(req: NextRequest) {
     try {

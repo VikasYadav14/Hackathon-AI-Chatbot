@@ -21,14 +21,6 @@ const MainContent: React.FC = () => {
 
     const userId = useRef(process.env.NEXT_PUBLIC_GOOGLE_MAP_API_KEY); // Simple user ID for session management
 
-    const toggleChatbot = () => {
-        setIsOpen(!isOpen);
-    };
-
-    const handleClose = () => {
-        setIsOpen(false);
-    };
-
     const handleSendMessage = async (userInput: string) => {
         if (!userInput.trim()) return;
 
