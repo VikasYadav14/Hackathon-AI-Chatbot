@@ -23,25 +23,30 @@ let conversationState: ConversationState = {};
 export async function POST(req: NextRequest, res: NextResponse) {
     try {
         const { userId, message } = await req.json();
-        console.log(userId);
 
         // Initialize state if not already present
         if (!conversationState[userId]) {
             conversationState[userId] = { history: [] };
         }
 
+        console.log("conversationState", conversationState);
+
         const history = conversationState[userId].history;
+        console.log("history", history);
+
         let responseMessage = '';
 
         try {
             // Append user message to history
             history.push({ role: 'user', content: message });
+            console.log(JSON.stringify(history, null, 2));
 
             // Get response from OpenAI based on the conversation history
             const completion = await openai.chat.completions.create({
                 model: "gpt-3.5-turbo",
                 messages: [
-                    { role: 'system', content: `You are an empathetic and supportive AI chatbot designed to provide emotional support to employees. Your primary function is to analyze the mood of the employees based on their input and respond accordingly. You are not a search engine and should not provide answers to factual or technical questions. Instead, focus on offering emotional support, encouragement, and motivation. When employees feel unmotivated or depressed, respond with kindness, understanding, and positive reinforcement to help uplift their spirits. Try to give short and as humanly as possible answers.
+                    {
+                        role: 'system', content: `You are an empathetic and supportive AI chatbot designed to provide emotional support to employees. Your primary function is to analyze the mood of the employees based on their input and respond accordingly. You are not a search engine and should not provide answers to factual or technical questions. Instead, focus on offering emotional support, encouragement, and motivation. When employees feel unmotivated or depressed, respond with kindness, understanding, and positive reinforcement to help uplift their spirits. Try to give short and as humanly as possible answers.
 
 Examples:
 
@@ -70,6 +75,8 @@ Always respond with empathy, and offer support and motivation. Avoid providing f
 
             // Update the conversation history
             conversationState[userId].history = history;
+            console.log("conversationStat", JSON.stringify(conversationState, null, 2));
+
         } catch (error) {
             console.error('Error with OpenAI API:', error);
             responseMessage = "I'm having trouble understanding your mood. Can you tell me more?";

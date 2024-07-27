@@ -8,7 +8,6 @@ interface Message {
 }
 
 const MainContent: React.FC = () => {
-    const [isOpen, setIsOpen] = useState(false);
     const [userInput, setUserInput] = useState('');
     const [conversation, setConversation] = useState<Message[]>([]);
     const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -19,7 +18,7 @@ const MainContent: React.FC = () => {
         }
     }, [conversation]);
 
-    const userId = useRef(process.env.NEXT_PUBLIC_GOOGLE_MAP_API_KEY); // Simple user ID for session management
+    const userId = useRef(process.env.NEXT_PUBLIC_USER_ID); // Simple user ID for session management
 
     const handleSendMessage = async (userInput: string) => {
         if (!userInput.trim()) return;
@@ -29,6 +28,7 @@ const MainContent: React.FC = () => {
             ...prevConversation,
             { sender: 'You', message: userInput },
         ]);
+        console.log(conversation);
 
         // Send message to backend
         const response = await fetch('/api/analyze', {
@@ -72,6 +72,7 @@ const MainContent: React.FC = () => {
                     </div>
                 ))}
             </div>
+
             <div className="flex mt-2">
                 <input
                     type="text"

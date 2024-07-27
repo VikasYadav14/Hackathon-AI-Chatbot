@@ -2,6 +2,7 @@
 import { conversationState } from '@/commonstore';
 import React, { useEffect, useState, useRef } from 'react';
 import { ChatCompletionRequestMessage } from '@/commonstore'; // Adjust import if necessary
+import { FaPlus } from 'react-icons/fa';
 
 interface Conversation {
   date: string;
@@ -12,7 +13,7 @@ const Sidebar = () => {
   const [history, setHistory] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const userId = useRef<string | undefined>(process.env.NEXT_PUBLIC_GOOGLE_MAP_API_KEY); // Replace with actual user ID
+  const userId = useRef<string | undefined>(process.env.NEXT_PUBLIC_USER_ID); // Replace with actual user ID
 
   useEffect(() => {
     const extractHistory = () => {
@@ -47,6 +48,23 @@ const Sidebar = () => {
     // fetchHistory();
   }, []);
 
+  const createNewChat = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/chat`);
+      const data = await response.json();
+      if (response.ok) {
+        setHistory(data.history);
+      } else {
+        setError(data.error);
+      }
+    } catch (error) {
+      setError('Error fetching history.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="bg-gray-800 text-white w-64 h-screen p-4">
       <div className="flex justify-between items-center text-base font-medium">
@@ -58,6 +76,11 @@ const Sidebar = () => {
         <p>Wattmonk Technologies</p>
       </div>
       <div className="mt-4">
+        <div className="flex justify-between items-center text-base font-normal cursor-pointer"
+          onClick={createNewChat}>
+          <p>New Chat</p>
+          <FaPlus className="text-gray-300 ml-2 w-4 h-4" />
+        </div>
         <div className="mb-2">Conversation History</div>
         {loading ? (
           <div className="text-gray-400">Loading...</div>
