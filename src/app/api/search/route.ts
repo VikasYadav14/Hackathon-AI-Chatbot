@@ -5,7 +5,6 @@ export async function GET(req: NextRequest) {
     try {
         const searchParams = req.nextUrl.searchParams;
         const query = searchParams.get('query')
-        console.log("query====>", query);
 
         const data = await User.find({ email: "hr@wattmonk.com" });
         return NextResponse.json(data);

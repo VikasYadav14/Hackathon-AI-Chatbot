@@ -1,16 +1,18 @@
 import Header from "@/components/header";
 import MainContent from "@/components/maincontent";
 import Sidebar from "@/components/sidebar";
-import Image from "next/image";
+import { ChatProvider } from "@/context/chatContext";
 
 export default function Home() {
   return (
-    <main className="flex h-screen">
-      <Sidebar />
-      <div className="flex flex-col flex-grow">
+    <main className="max-h-screen absolute w-full">
+      <ChatProvider>
         <Header />
-        <MainContent />
-      </div>
+        <div className="flex h-screen">
+          <Sidebar />
+          <MainContent />
+        </div>
+      </ChatProvider>
     </main>
   );
 }
