@@ -23,13 +23,16 @@ let conversationState: ConversationState = {};
 export async function POST(req: NextRequest, res: NextResponse) {
     try {
         const { userId, message } = await req.json();
-        console.log(userId);
 
         if (!conversationState[userId]) {
             conversationState[userId] = { history: [] };
         }
 
+        console.log("conversationState", conversationState);
+
         const history = conversationState[userId].history;
+        console.log("history", history);
+
         let responseMessage = '';
 
         try {
@@ -111,6 +114,8 @@ ${userData}` },
             history.push({ role: 'assistant', content: responseMessage });
 
             conversationState[userId].history = history;
+            console.log("conversationStat", JSON.stringify(conversationState, null, 2));
+
         } catch (error) {
             console.error('Error with OpenAI API:', error);
             responseMessage = "I'm having trouble understanding your mood. Can you tell me more?";
