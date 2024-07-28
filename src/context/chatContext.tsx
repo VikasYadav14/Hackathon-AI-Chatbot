@@ -21,7 +21,10 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 // Create a provider component
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
     const [chatId, setChatId] = useState<ObjectId>();
-    const [conversation, setConversation] = useState<Message[]>([]);
+    const [conversation, setConversation] = useState<Message[]>([{
+        role: "assistant",
+        content: "Hello, Siddharth. I'm here to assist you with any HR-related inquiries. How can I help you today?"
+    }]);
 
     return (
         <ChatContext.Provider value={{ chatId, setChatId, conversation, setConversation }}>

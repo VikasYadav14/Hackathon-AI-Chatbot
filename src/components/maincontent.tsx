@@ -57,7 +57,13 @@ const MainContent: React.FC = () => {
     };
 
     return (
-        <div className="mt-20 flex flex-col w-4/5 p-4 justify-between">
+        <div className="mt-20 flex flex-col w-4/5 p-4 justify-between"
+            style={{
+                backgroundImage: `url('/robot.png')`,
+                backgroundSize: '50%', // Use 'contain' to ensure the image fits within the div without covering it
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat' // Ensure the image does not repeat
+            }}>
             <div ref={chatContainerRef} className="overflow-y-scroll p-4 rounded-md">
                 {conversation.map((msg, index) => (
                     <div
@@ -69,7 +75,7 @@ const MainContent: React.FC = () => {
                                 <FaRobot className="text-blue-500 mr-2 " />
                             </div>
                         )}
-                        <div className={`message p-2 rounded-md max-w-5xl ${msg.role === 'user' ? 'bg-green-200 text-right' : 'bg-blue-200 text-left'}`}>
+                        <div className={`message p-2 rounded-md max-w-5xl bg-opacity-60 ${msg.role === 'user' ? 'bg-green-300 text-right' : 'bg-blue-300 text-left'}`}>
                             {msg.content}
                         </div>
                         {msg.role === 'user' && (
