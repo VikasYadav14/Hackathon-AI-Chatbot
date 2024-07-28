@@ -1,110 +1,62 @@
 "use client";
-import { conversationState } from '@/commonstore';
-import React, { useEffect, useState, useRef } from 'react';
-import { ChatCompletionRequestMessage } from '@/commonstore'; // Adjust import if necessary
+import React from 'react';
 import { FaPlus } from 'react-icons/fa';
+import axios from 'axios';
+import useSWR from 'swr';
+import { Message, useChat } from '@/context/chatContext'; // Ensure correct path
+import { ObjectId } from 'mongoose';
 
-interface Conversation {
-  date: string;
-  messages: ChatCompletionRequestMessage[];
-}
+
+const fetcher = (url: string) => axios.get(url).then(res => res.data);
 
 const Sidebar = () => {
-  const [history, setHistory] = useState<Conversation[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const userId = useRef<string | undefined>(process.env.NEXT_PUBLIC_USER_ID); // Replace with actual user ID
+  const { setChatId, setConversation } = useChat();
 
-  useEffect(() => {
-    const extractHistory = () => {
-      // Convert conversationState into an array of Conversations
-      const extractedHistory = Object.keys(conversationState).map(key => ({
-        date: new Date(key).toLocaleDateString(), // Format date
-        messages: conversationState[key].history
-      }));
-      setHistory(extractedHistory);
-    };
-
-    extractHistory();
-
-    // Uncomment this section if fetching from an API:
-    // const fetchHistory = async () => {
-    //   setLoading(true);
-    //   try {
-    //     const response = await fetch(`/api/history?userId=${userId.current}`);
-    //     const data = await response.json();
-    //     if (response.ok) {
-    //       setHistory(data.history);
-    //     } else {
-    //       setError(data.error);
-    //     }
-    //   } catch (error) {
-    //     setError('Error fetching history.');
-    //   } finally {
-    //     setLoading(false);
-    //   }
-    // };
-
-    // fetchHistory();
-  }, []);
+  const { data, error, isLoading } = useSWR('/api/chat?userId=1', fetcher);
 
   const createNewChat = async () => {
-    setLoading(true);
+    setChatId(undefined),
+      setConversation([]);
+  };
+
+  const setOldChat = async (id: ObjectId) => {
     try {
-      const response = await fetch(`/api/chat`);
-      const data = await response.json();
-      if (response.ok) {
-        setHistory(data.history);
-      } else {
-        setError(data.error);
+      const response = await axios.get(`/api/chat/${id}`);
+      const chat = response.data.data;
+
+      if (response.status === 200 && chat) {
+        setChatId(chat._id);
+        setConversation(chat.conversation);
       }
-    } catch (error) {
-      setError('Error fetching history.');
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching chat:', err);
     }
-  }
+  };
 
   return (
-    <div className="bg-gray-800 text-white w-64 h-screen p-4">
-      <div className="flex justify-between items-center text-base font-medium">
-        <img
-          src={'https://speed.wattmonk.com/assets/images/logo/wattmonklogo.png'}
-          alt="wattmonk logo"
-          className="w-8 h-8 rounded-full"
-        />
-        <p>Wattmonk Technologies</p>
-      </div>
-      <div className="mt-4">
-        <div className="flex justify-between items-center text-base font-normal cursor-pointer"
-          onClick={createNewChat}>
+    <div className="bg-gray-700 text-white w-1/5 h-screen p-4">
+      <div className="mt-20">
+        <div className="flex justify-between items-center text-base font-normal cursor-pointer" onClick={createNewChat}>
           <p>New Chat</p>
           <FaPlus className="text-gray-300 ml-2 w-4 h-4" />
         </div>
-        <div className="mb-2">Conversation History</div>
-        {loading ? (
+        <div className="my-4">Conversation History</div>
+        {isLoading ? (
           <div className="text-gray-400">Loading...</div>
         ) : error ? (
-          <div className="text-red-500">{error}</div>
-        ) : history.length > 0 ? (
-          history.map((conversation, index) => {
-            // Get the first message for the heading
-            const firstMessage = conversation.messages[0]?.content || 'No messages';
-
-            return (
-              <div key={index} className="mt-4">
-                <div className="text-lg font-bold mb-2">{firstMessage}</div> {/* Heading with the first message */}
-                <div className="text-gray-400 mb-2">{conversation.date}</div>
-                <ul className="space-y-2">
-                  {conversation.messages.map((message, idx) => (
-                    <li key={idx} className="text-gray-400">
-                      {message.role === 'user' ? 'You' : message.role === 'assistant' ? 'Assistant' : 'System'}: {message.content}
-                    </li>
-                  ))}
-                </ul>
+          <div className="text-red-500">Error: {error.message}</div>
+        ) : data?.data.length > 0 ? (
+          data.data.map((d: { _id: ObjectId; chatName: string }, index: number) => (
+            <div key={index} className="mt-2">
+              {index > 0 && (
+                <div className="border-t border-white my-2" />
+              )}
+              <div className="text-sm mb-2 cursor-pointer" onClick={() => setOldChat(d._id)}>
+                {d.chatName}
               </div>
-            );
-          })
+            </div>
+
+          ))
         ) : (
           <div className="text-gray-400">No conversation history found.</div>
         )}

@@ -1,25 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
-import mongoose from 'mongoose';
 import User from '@/models/userModel';
+import Chat from '@/models/chatModel';
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
 });
-
-interface ChatCompletionRequestMessage {
-    role: 'user' | 'assistant' | 'system';
+export interface ChatCompletionRequestMessage {
+    role: 'user' | 'assistant';
     content: string;
 }
 
-interface ConversationState {
-    [key: string]: {
-        history: ChatCompletionRequestMessage[];
-    };
-}
-
-let conversationState: ConversationState = {};
-
+const userId = "1"
 export async function POST(req: NextRequest, res: NextResponse) {
     try {
         const { userId, message } = await req.json();
@@ -47,6 +39,23 @@ export async function POST(req: NextRequest, res: NextResponse) {
                 model: "gpt-4o",
                 messages: [
                     { role: 'system', content: `You are an empathetic and supportive AI chatbot designed to provide emotional support to employees, acting like a friendly HR representative. Your primary function is to analyze the mood of the employees based on their input and respond accordingly. You are not a search engine and should not provide answers to factual or technical questions. Instead, focus on offering emotional support, encouragement, and motivation. When employees feel unmotivated or depressed, respond with kindness, understanding, and positive reinforcement to help uplift their spirits. Try to give short and as humanly as possible answers.
+        let { chatId, message } = await req.json();
+        let history: ChatCompletionRequestMessage[] = []
+        if (chatId) {
+            const chat = await Chat.findById(chatId)
+            history = [...(chat?.conversation as ChatCompletionRequestMessage[])];
+        }
+
+        history.push({ role: 'user', content: message });
+        console.log(JSON.stringify(history), 2, null);
+
+        let userData = await User.findOne({ email: "hr@wattmonk.com" });
+
+        const completion = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [
+                {
+                    role: 'system', content: `You are an empathetic and supportive AI chatbot designed to provide emotional support to employees, acting like a friendly HR representative. Your primary function is to analyze the mood of the employees based on their input and respond accordingly. You are not a search engine and should not provide answers to factual or technical questions. Instead, focus on offering emotional support, encouragement, and motivation. When employees feel unmotivated or depressed, respond with kindness, understanding, and positive reinforcement to help uplift their spirits. Try to give short and as humanly as possible answers.
 
 Examples:
 
@@ -99,32 +108,44 @@ Minimum half-day, maximum 3 days
 Available during probation
 No carry forward
 Medical certificate required for more than 3 consecutive days 
-This is the user data hid/her detail and and leave count: 
-${userData}` },
-                    ...history
-                ]
-            });
+This is the user data his/her detail and and leave count: 
+${userData}`
+                },
+                ...history
+            ]
+        });
+        let responseMessage = '';
 
-            if (completion && completion.choices && completion.choices[0] && completion.choices[0].message && completion.choices[0].message.content) {
-                responseMessage = completion.choices[0].message.content.trim();
-            } else {
-                responseMessage = "I'm having trouble understanding your mood. Can you tell me more?";
-            }
-
-            history.push({ role: 'assistant', content: responseMessage });
-
-            conversationState[userId].history = history;
-            console.log("conversationStat", JSON.stringify(conversationState, null, 2));
-
-        } catch (error) {
-            console.error('Error with OpenAI API:', error);
+        if (completion && completion.choices && completion.choices[0] && completion.choices[0].message && completion.choices[0].message.content) {
+            responseMessage = completion.choices[0].message.content.trim();
+        } else {
             responseMessage = "I'm having trouble understanding your mood. Can you tell me more?";
         }
 
-        return NextResponse.json({ message: responseMessage });
+        history.push({ role: 'assistant', content: responseMessage });
+
+        if (!chatId) {
+            const words = history[0].content.split(' ');
+            const firstFiveWords = words.slice(0, 5).join(' ');
+
+            const newChat = await Chat.create({
+                userId,
+                chatName: firstFiveWords,
+                conversation: history
+            })
+            chatId = newChat.id
+        }
+        else {
+            const updatedChat = await Chat.findByIdAndUpdate(
+                chatId,
+                { conversation: history },
+                { new: true, useFindAndModify: false }
+            );
+        }
+        return NextResponse.json({ chatId, message: responseMessage });
 
     } catch (error) {
-        console.error('Error parsing request body:', error);
-        return NextResponse.json({ message: "Invalid request" }, { status: 400 });
+        console.error('Error handling the request:', error);
+        return NextResponse.json({ message: "An error occurred while processing your request." }, { status: 500 });
     }
 }
