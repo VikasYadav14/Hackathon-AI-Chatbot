@@ -3,6 +3,8 @@ import { OpenAI } from 'openai';
 import User from '@/models/userModel';
 import Chat from '@/models/chatModel';
 
+const currentDate = new Date();
+
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
 });
@@ -14,6 +16,8 @@ export interface ChatCompletionRequestMessage {
 const userId = "1"
 export async function POST(req: NextRequest, res: NextResponse) {
     try {
+        console.log(currentDate);
+        
         let { chatId, message } = await req.json();
         let history: ChatCompletionRequestMessage[] = []
         if (chatId) {
@@ -31,7 +35,9 @@ export async function POST(req: NextRequest, res: NextResponse) {
             messages: [
                 {
                     role: 'system', content: `You are an empathetic and supportive AI chatbot designed to provide emotional support to employees, acting like a friendly HR representative. Your primary function is to analyze the mood of the employees based on their input and respond accordingly. You are not a search engine and should not provide answers to factual or technical questions. Instead, focus on offering emotional support, encouragement, and motivation. When employees feel unmotivated or depressed, respond with kindness, understanding, and positive reinforcement to help uplift their spirits. Try to give short and as humanly as possible answers.
-
+ you also have knowledge of date and callender.
+ today data = ${currentDate}
+                     
 Examples:
 
 Employee: "I'm feeling really overwhelmed and stressed out."
@@ -83,6 +89,31 @@ Minimum half-day, maximum 3 days
 Available during probation
 No carry forward
 Medical certificate required for more than 3 consecutive days 
+
+WFH Policy Summary
+
+Document Number: Work from Home-001
+Version: 2
+Document Owner: Human Resource
+Company: Wattmonk Technologies Pvt Ltd
+Effective Date: 1-April-2024
+Review Frequency: Annually
+
+Objective:
+To improve work-life balance, safety, and business continuity, while maintaining quality and behavioural standards based on ethics, efficiency, and client commitment.
+
+Eligibility:
+All full-time employees of Wattmonk.
+
+Work From Home Days:
+
+Maximum 3 days per month, 30 days per year.
+Days cannot be combined or taken consecutively.
+Procedure:
+
+Request WFH via email or KEKA at least two days prior.
+Manager's approval required based on work schedule.
+
 This is the user data his/her detail and and leave count: 
 ${userData}`
                 },
