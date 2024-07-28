@@ -39,7 +39,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
             history.push({ role: 'user', content: message });
 
 
-            let userData = await User.findOne({email: "hr@wattmonk.com"});
+            let userData = await User.findOne({email: userId});
             console.log(userData);
             
         
