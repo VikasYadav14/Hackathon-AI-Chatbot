@@ -24,6 +24,12 @@ export async function POST(req: NextRequest, res: NextResponse) {
             const chat = await Chat.findById(chatId)
             history = [...(chat?.conversation as ChatCompletionRequestMessage[])];
         }
+        else {
+            history.push({
+                role: "assistant",
+                content: "Hello, Siddharth. I'm here to assist you with any HR-related inquiries. How can I help you today?"
+            })
+        }
 
         history.push({ role: 'user', content: message });
         console.log(JSON.stringify(history), 2, null);
@@ -131,7 +137,7 @@ ${userData}`
         history.push({ role: 'assistant', content: responseMessage });
 
         if (!chatId) {
-            const words = history[0].content.split(' ');
+            const words = history[1].content.split(' ');
             const firstFiveWords = words.slice(0, 5).join(' ');
 
             const newChat = await Chat.create({
